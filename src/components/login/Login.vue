@@ -1,7 +1,6 @@
 <template>
   <div class="ev-login col-sm-4 offset-sm-4">
     <spinner v-show="loggingIn" message="Logging in..."></spinner>
-    <p>email: <strong>test@g.com</strong> <br> password: <strong>test123</strong></p>
     <div class="alert alert-danger" v-if="error">
       <p>{{ error }}</p>
     </div>
