@@ -1,13 +1,22 @@
 <template>
   <div class="ev-login col-sm-4 offset-sm-4">
-    <spinner v-show="loggingIn" message="Logging in..."></spinner>
+    <spinner v-show="signinIn" message="Register in..."></spinner>
     <div class="alert alert-danger" v-if="error">
       <p>{{ error }}</p>
     </div>
     <div class="form-group">
       <input 
         type="text"
-        data-id="login.email" 
+        data-id="signup.name" 
+        class="form-control js-login__username"
+        placeholder="Enter your name"
+        v-model="credentials.name"
+      >
+    </div>
+    <div class="form-group">
+      <input 
+        type="text"
+        data-id="signup.email" 
         class="form-control js-login__username"
         placeholder="Enter your email"
         v-model="credentials.email"
@@ -44,23 +53,25 @@ export default {
   data () {
     return {
       credentials: {
+        name: '',
         email: '',
         password: ''
       },
-      loggingIn: false,
+      signinIn: false,
       error: ''
     }
   },
   methods: {
     submit () {
-      this.loggingIn = true
+      this.signinIn = true
       const credentials = {
-        workspaceId: 'jinyan',
+        name: this.credentials.name,
+        workspace: 'jinyan',
         email: this.credentials.email,
         password: this.credentials.password
       }
-      this.$auth.login(credentials, 'dashboard').then((response) => {
-        this.loggingIn = false
+      this.$auth.register(credentials, 'dashboard').then((response) => {
+        this.signinIn = false
         this.error = utils.getError(response)
       })
     }

@@ -8,7 +8,7 @@ import * as QueryString from 'querystring'
  * @var{string} LOGIN_URL The endpoint for logging in. This endpoint should be proxied by Webpack dev server
  *    and maybe nginx in production (cleaner calls and avoids CORS issues).
  */
-const LOGIN_URL = 'http://localhost:3000/login'
+const API_URL = 'http://localhost:3000'
 
 /**
  * @var{string} REFRESH_TOKEN_URL The endpoint for refreshing an access_token. This endpoint should be proxied
@@ -95,7 +95,7 @@ export default {
       'email': creds.email,
       'password': creds.password
     })
-    return Vue.http.post(LOGIN_URL, data)
+    return Vue.http.post(API_URL + '/login', data)
       .then((response) => {
         this._storeToken(response)
 
@@ -110,6 +110,25 @@ export default {
       })
   },
 
+  register (creds, redirect) {
+    const data = QueryString.stringify({
+      'name': creds.name,
+      'workspace': creds.workspace,
+      'email': creds.email,
+      'password': creds.password
+    })
+    return Vue.http.post(API_URL + '/register', data)
+      .then((response) => {
+        this._storeToken(response)
+
+        if (redirect) {
+          router.push({ name: redirect })
+        }
+      })
+      .catch((err) => {
+        return err
+      })
+  },
   /**
    * Logout
    *
