@@ -1,108 +1,62 @@
 <template>
-<div class="ev-dashboard">
-  <div class="ev-dashboard__heading h1">This is the dashboard</div>
-
-
-  <div class="card">
-    <div class="card-header">
-      Example #1
-    </div>
-    <div class="card-block">
-      <h4 class="card-title">Parent-Child Flow</h4>
-      <p class="card-text">Communication from the parent flows into the child via props. Parents can listen on events emitted from the child and update their own state accordingly.</p>
-
-      <a href="#" class="btn btn-primary"  @click="addressModalVisible = true">Open child modal</a><br><br>
-      The visible status of the modal: <code>{{ addressModalVisible }}</code><br><br>
-      The address info: 
-      <pre>
-{{ addressInfo }}
-      </pre>
-    </div>
+  <div class="message-template">
+    <b-container class="message-container">
+      <b-row class="message-display">
+        <b-col class="user-list" cols="3">
+          <b-list-group>
+            <b-list-group-item>USERS</b-list-group-item>
+            <b-list-group-item v-for="user in users" :key="user._id">
+              {{user.name}}
+            </b-list-group-item>
+          </b-list-group>
+        </b-col>
+        <b-col id="messagelist" class="messages-list" cols="9">
+          <b-row>
+            <b-list-group class="message-list">
+              <b-list-group-item>General Platform</b-list-group-item>
+              <b-list-group-item v-for="message in messages" :key="message._id">
+                <b-row>
+                  <span>{{message.user}}</span>
+                  <b-col>{{message.date}}</b-col>
+                </b-row>
+                <b-row>
+                  <b-col>{{message.message}}</b-col>
+                </b-row>
+              </b-list-group-item>
+            </b-list-group>
+          </b-row>
+        </b-col> 
+      </b-row>
+      <b-row class="message-send">
+        <b-input-group prepend="Message">
+          <b-form-input v-model="message"></b-form-input>
+          <b-input-group-append>
+            <b-btn variant="info" v-on:click="sendMessage">Send</b-btn>
+          </b-input-group-append>
+        </b-input-group>
+      </b-row>
+      
+      <!--<address-modal 
+        v-if="addressModalVisible"
+        :visible="true"
+        @saved="addressInfo = arguments[0]"
+        @closed="addressModalVisible = false"
+      >-->
+      </address-modal>
+    </b-container>
   </div>
-  <br>
 
-
-  <div class="card">
-    <div class="card-header">
-      Example #2
-    </div>
-    <div class="card-block">
-      <h4 class="card-title">Vuex!</h4>
-      <p class="card-text">
-        Let's use Vue with Vuex to react and watch for changes in another component. I've stored two values in Vuex to represent different ways state and events can be handled.     
-
-        <div class="alert alert-info" role="alert">
-          <strong>Heads up!</strong> Use the search in the navbar and watch the changes in the code block below:
-        </div>
-        <pre class="text-muted">
-  {{ $store.state.appnav }}
-        </pre>
-        <p>
-          <strong>Using Computed Properties</strong><br>
-          You can use a stored property in your own computed property to reactively update a value:
-    <pre class="text-muted">
-      computed: {
-        reversedSearchText: function () {
-          return this.$store.state.appnav.searchText.split('').reverse().join('')
-        }
-      }
-    </pre>
-          The reversed value of the search text is: <code>{{ reversedSearchText }}</code>
-        </p>
-        <p>
-          <strong>Use a Vuex watcher</strong><br>
-          Put a watcher on a Vuex property to attach behavior and side-effects to state changes:  
-    <pre class="text-muted">
-      mounted () {
-        this.$store.watch((state) => {
-          return state.appnav
-        }, (appnav) => {
-          // Add some behavior here
-          alert('Now you need to make a component to display search results!')
-        }, {
-          deep: true
-        })
-      }
-    </pre>
-          When you perform a search from the navbar above, an alert box should show.       
-        </p>
-      </p>
-    </div>
-  </div>
-  <br>
-
-  <div class="card">
-    <div class="card-header">
-      Example #3
-    </div>
-    <div class="card-block">
-      <h4 class="card-title">Accessing Secure Resources</h4>
-      <p class="card-text">Click the button below to access a protected list of your friends. You can wait for the access token to expire, then notice that the token is automatically renewed for you (see Auth.js).</p>
-      <div class="alert alert-danger" v-if="error">
-        <p>{{ error }}</p>
-      </div>
-      <spinner v-show="isLoadingFriends"></spinner>
-      <button class="btn btn-primary" @click="getFriends()">Get friends</button><br><br>
-      <div>Friends: {{ friends }}</div>
-    </div>
-  </div>
-  <br>
-
-  <address-modal 
-    v-if="addressModalVisible"
-    :visible="true"
-    @saved="addressInfo = arguments[0]"
-    @closed="addressModalVisible = false"
-  >
-  </address-modal>
-
-</div>
 </template>
 
 <script>
 import Vue from 'vue'
+import socketio from 'socket.io-client'
+import VueSocketio from 'vue-socket.io';
+import { autoscroll } from 'vue-autoscroll'
 import AddressModal from './AddressModal.vue'
 import Spinner from '@/components/common/Spinner'
+
+Vue.use(VueSocketio, socketio('http://localhost:3000'));
 
 export default {
   name: 'dashboard',
@@ -110,24 +64,55 @@ export default {
 
   data () {
     return {
-      addressInfo: {
-        addressLine1: '',
-        addressLine2: '',
-        email: '',
-        state: '',
-        country: '',
-        zipcode: ''
-      },
-      addressModalVisible: false,
-      friends: '',
-      isLoadingFriends: false,
-      error: ''
+      message: '',
+      error: '',
+      isConnected: false,
+      socketMessage: '',
+      messages: [],
+      users: [],
     }
   },
+  sockets: {
+    connect() {
+      console.log('socket io is connected')
+      this.isConnected = true;
+    },
 
+    disconnect() {
+      this.isConnected = false;
+    }
+  },
+  created: function() {
+    const user_data = {
+      'workspaceId': 'jinyan'
+    }
+    this.$user.getUsers(user_data).then((response) => {
+      this.users = response.body
+    }, (err) => {
+      console.log(err)
+    })
+
+    this.$chat.initMessage().then((response) => {
+      this.messages = response.body
+    }, (err) => {
+      console.log(err);
+    })
+    var vm = this
+    var socket = socketio.connect('http://localhost:3000')
+    socket.on('RECEIVE_MESSAGE', function (data) {
+      vm.messages.push({
+        'user': data.user,
+        'message': data.message,
+        'date': data.date
+      })
+      setTimeout(function() {
+        var element = document.getElementById("messagelist")
+        element.scrollTop = element.scrollHeight - element.clientHeight
+      }, 300)
+    })
+  },
   computed: {
     reversedSearchText: function () {
-      console.log(Vue.options.store)
       return this.$store.state.appnav.searchText.split('').reverse().join('')
     }
   },
@@ -136,7 +121,6 @@ export default {
     this.$store.watch((state) => {
       return state.appnav
     }, (appnav) => {
-      // Add some behavior here
       alert('Now you need to make a component to display search results!')
     }, {
       deep: true
@@ -144,27 +128,53 @@ export default {
   },
 
   methods: {
-    getFriends () {
-      this.isLoadingFriends = true
-
-      this.$http
-        .get('/api/resource')
-        .then((response) => {
-          this.isLoadingFriends = false
-          this.friends = JSON.stringify(response.data.friends)
-        })
-        .catch((response) => {
-          this.isLoadingFriends = false
-          this.error = utils.getError(response)
-        })
+    sendMessage: function () {
+      if (this.message === '') return
+      const msg = {
+        'user': this.$session.get('vue-chatting')._id,
+        'message': this.message 
+      }
+      this.$socket.emit('SEND_MESSAGE', msg)
+      this.message = ''
     }
   }
 }
 </script>
 
 <style lang="scss">
-.ev-dashboard {
-  margin-top: 60px;
+.message-template {
+  width: 100%;
+  padding-top: 70%;
+  
+  .message-container {
+    position: absolute;
+    top: 90px;
+    bottom: 90px;
+    width: 100%;
+    background-color: lightgrey;
+
+    .message-display {
+      height: 95%;
+
+      .user-list {
+        background-color: #fff;
+        overflow: auto;
+      }
+
+      .messages-list {
+        background-color: #d4d4d4;
+        overflow: auto;
+      }
+    }
+
+    .message-send {
+      height: 5%;
+    }
+  }
+}
+
+.message-list {
+  width: 100%;
 }
 
 </style>

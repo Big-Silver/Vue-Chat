@@ -16,9 +16,14 @@
     "bootstrap-vue": "^2.0.0-rc.8",
     "popper.js": "^1.14.3",
     "query-string": "^6.0.0",
+    "socket.io-client": "^2.1.0",
     "vue": "^2.2.2",
+    "vue-autoscroll": "^1.1.1",
+    "vue-chat-scroll": "^1.2.1",
     "vue-resource": "^1.2.1",
     "vue-router": "^2.2.0",
+    "vue-session": "^1.0.0",
+    "vue-socket.io": "^2.1.1-b",
     "vuex": "^2.2.1"
   },
   "devDependencies": {

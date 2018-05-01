@@ -62,7 +62,9 @@ export default {
       // Auth.login() returns a promise. A redirect will happen on success.
       // For errors, use .then() to capture the response to output
       // error_description (if exists) as shown below:
+      var vm = this
       this.$auth.login(credentials, 'dashboard').then((response) => {
+        vm.$session.set('vue-chatting', response.body)
         this.loggingIn = false
         this.error = utils.getError(response)
       })

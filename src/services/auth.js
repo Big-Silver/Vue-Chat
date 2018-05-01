@@ -1,6 +1,6 @@
 import Vue from 'vue'
-import router from './router'
-import store from './store'
+import router from '../router'
+import store from '../store'
 
 import * as QueryString from 'querystring'
 
@@ -98,7 +98,6 @@ export default {
     return Vue.http.post(API_URL + '/login', data)
       .then((response) => {
         this._storeToken(response)
-
         if (redirect) {
           router.push({ name: redirect })
         }
@@ -120,7 +119,6 @@ export default {
     return Vue.http.post(API_URL + '/register', data)
       .then((response) => {
         this._storeToken(response)
-
         if (redirect) {
           router.push({ name: redirect })
         }

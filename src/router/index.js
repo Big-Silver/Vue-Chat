@@ -19,7 +19,7 @@ const router = new Router({
     },
     {
       path: '/login',
-      name: 'login',
+      name: 'login1',
       component: function (resolve) {
         require(['@/components/login/Login.vue'], resolve)
       },
@@ -39,6 +39,10 @@ const router = new Router({
         require(['@/components/dashboard/Dashboard.vue'], resolve)
       },
       beforeEnter: guardRoute
+    },
+    {
+      path: '/*',
+      redirect: '/login'
     }
   ]
 })

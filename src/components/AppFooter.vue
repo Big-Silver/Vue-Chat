@@ -7,7 +7,7 @@
 </template>
 
 <script>
-import Auth from '@/auth'
+import Auth from '../services/auth'
 export default {
   data () {
     return {
@@ -16,6 +16,7 @@ export default {
   },
   methods: {
     logout () {
+      this.$session.remove('vue-chatting')
       Auth.logout()
     }
   }
