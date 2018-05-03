@@ -6,7 +6,7 @@
           <b-list-group>
             <b-list-group-item>USERS</b-list-group-item>
             <b-list-group-item v-for="user in users" :key="user._id">
-              {{user.name}}
+              {{user.name}}<span v-bind:class="user.isTyping ? isTyping : noneTyping">  typing...</span>
             </b-list-group-item>
           </b-list-group>
         </b-col>
@@ -29,7 +29,7 @@
       </b-row>
       <b-row class="message-send">
         <b-input-group prepend="Message">
-          <b-form-input v-model="message"></b-form-input>
+          <b-form-input id="send-button" v-model="message" @keydown.native="onKey"></b-form-input>
           <b-input-group-append>
             <b-btn variant="info" v-on:click="sendMessage">Send</b-btn>
           </b-input-group-append>
@@ -41,8 +41,8 @@
         :visible="true"
         @saved="addressInfo = arguments[0]"
         @closed="addressModalVisible = false"
-      >-->
-      </address-modal>
+      >
+      </address-modal>-->
     </b-container>
   </div>
 
@@ -70,6 +70,9 @@ export default {
       socketMessage: '',
       messages: [],
       users: [],
+      isTyping: 'userTyping',
+      noneTyping: 'notTyping',
+      waitTyping: false
     }
   },
   sockets: {
@@ -110,6 +113,24 @@ export default {
         element.scrollTop = element.scrollHeight - element.clientHeight
       }, 300)
     })
+    socket.on('RECEIVE_SIGNAL', function (data) {
+      var user = vm.users.find(function (ele) {
+        return ele.email === data.email
+      })
+      user.isTyping = true
+      if (!vm.waitTyping) {
+        vm.waitTyping = setTimeout(function() {
+          user.isTyping = false
+        }, 2000)
+      }
+      // setTimeout(function() {
+      //   for (var i = 0; i < vm.users.length; i++) {
+      //     if (vm.users[i].isTyping) {
+      //       !vm.users[i].isTyping
+      //     }
+      //   }
+      // }, 2000)
+    })
   },
   computed: {
     reversedSearchText: function () {
@@ -136,6 +157,13 @@ export default {
       }
       this.$socket.emit('SEND_MESSAGE', msg)
       this.message = ''
+    },
+    onKey: function (event) {
+      var vm = this
+      this.$socket.emit('SEND_SIGNAL', {
+        email: vm.$session.get('vue-chatting').email,
+        workspaceId: vm.$session.get('vue-chatting').workspace
+      })
     }
   }
 }
@@ -159,6 +187,22 @@ export default {
       .user-list {
         background-color: #fff;
         overflow: auto;
+
+        .list-group {
+          cursor: pointer;
+        }
+
+        .notTyping {
+          display: none;
+        }
+
+        .userTyping {
+          display: inline-block;
+          font-size: 11px;
+          background-color: darkgrey;
+          text-align: center;
+          margin: 0 5px;
+        }
       }
 
       .messages-list {
